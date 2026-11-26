@@ -1,0 +1,12 @@
+services:
+  studysync:
+    build: .
+    container_name: studysync
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./studysync.db:/app/studysync.db
+    environment:
+      - PORT=3000
+      - NODE_ENV=production

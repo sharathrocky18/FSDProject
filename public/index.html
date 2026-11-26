@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudySync – Where is my time going?</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="authView" class="auth-view">
+  <canvas id="sproutCanvas" class="sprout-canvas"></canvas>
+  <a class="auth-brand" href="#" aria-label="StudySync home">
+    <img src="logo.svg" alt="" class="auth-logo" aria-hidden="true" width="40" height="40">
+    <span>Study<span>Sync</span></span>
+  </a>
+  <p class="auth-tagline">Learn smarter.<br>Grow faster.</p>
+  <section class="auth-card" aria-labelledby="authTitle">
+    <div class="auth-card-brand">
+      <img src="logo.svg" alt="StudySync logo" class="auth-cap" width="52" height="52">
+      <h1>Study<span>Sync</span></h1>
+      <p>Your Learning Companion</p>
+    </div>
+    <div class="auth-tabs" role="tablist" aria-label="Account access">
+      <button id="loginTab" class="active" type="button" role="tab" aria-selected="true">Login</button>
+      <button id="registerTab" type="button" role="tab" aria-selected="false">Register</button>
+    </div>
+    <h2 id="authTitle" class="visually-hidden">Login to StudySync</h2>
+    <form id="authForm" class="auth-form">
+      <label for="authEmail" class="visually-hidden">Email address</label>
+      <div class="auth-input">
+        <span aria-hidden="true">✉</span>
+        <input id="authEmail" name="email" type="email" autocomplete="email" placeholder="Email Address" maxlength="254" required>
+      </div>
+      <label for="authPassword" class="visually-hidden">Password</label>
+      <div class="auth-input">
+        <span aria-hidden="true">♙</span>
+        <input id="authPassword" name="password" type="password" autocomplete="current-password" placeholder="Password" minlength="8" maxlength="128" required>
+        <button id="passwordVisibility" class="password-visibility" type="button" aria-label="Show password">◎</button>
+      </div>
+      <div id="confirmPasswordField" class="auth-input" hidden>
+        <span aria-hidden="true">♙</span>
+        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm Password" minlength="8" maxlength="128">
+      </div>
+      <button id="authSubmit" class="auth-submit" type="submit">Login</button>
+      <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
+    </form>
+    <div class="auth-divider"><span>OR</span></div>
+    <p class="auth-switch-copy"><span id="authSwitchText">Don't have an account?</span>
+      <button id="authSwitch" type="button">Register</button>
+    </p>
+  </section>
+</main>
+
+<div class="app-layout" hidden>
+<aside class="sidebar" aria-label="Main sidebar">
+  <a class="brand" href="#overview">
+    <img src="logo.svg" alt="StudySync logo" class="logo" width="34" height="34">
+    <div><h1>StudySync</h1><p class="tagline">Your learning space</p></div>
+  </a>
+  <p class="nav-label">MENU</p>
+  <nav class="side-nav" aria-label="Main navigation">
+    <a class="nav-link active" href="#" data-view="overview"><span>▦</span> Overview</a>
+    <a class="nav-link" href="#" data-view="mylearning"><span>▤</span> My learning</a>
+    <a class="nav-link" href="#" data-view="schedule"><span>▣</span> Schedule</a>
+    <a class="nav-link" href="#" data-view="history"><span>◇</span> Sessions</a>
+    <a class="nav-link" href="#" data-view="tracktime"><span>☑</span> Track time</a>
+    <a class="nav-link" href="#" data-view="achievements"><span>♧</span> Achievements</a>
+    <a class="nav-link" href="#" data-view="studygoal"><span>⚙</span> Study goal</a>
+  </nav>
+  <div class="sidebar-tip"><span>✦</span><strong>Keep your momentum</strong><p>A focused session today is a win for tomorrow.</p></div>
+</aside>
+<div class="workspace">
+<header class="top">
+  <div class="page-heading"><span class="eyebrow">THURSDAY · YOUR LEARNING SPACE</span><h2 id="welcomeTitle">Good morning! <span>Ready to learn?</span></h2></div>
+  <label class="dashboard-search"><span>⌕</span><input id="dashboardSearch" type="search" placeholder="Search your subjects..." aria-label="Search sessions"></label>
+  <div class="top-tools">
+    <div class="color-palette-bar" role="radiogroup" aria-label="Professional cool color themes">
+      <button class="palette-swatch active" data-color-theme="indigo" title="Cool Indigo" aria-label="Cool Indigo theme" style="--c:#5a52e8"></button>
+      <button class="palette-swatch" data-color-theme="emerald" title="Nordic Emerald" aria-label="Nordic Emerald theme" style="--c:#059669"></button>
+      <button class="palette-swatch" data-color-theme="ocean" title="Ocean Teal" aria-label="Ocean Teal theme" style="--c:#0284c7"></button>
+      <button class="palette-swatch" data-color-theme="violet" title="Iris Violet" aria-label="Iris Violet theme" style="--c:#7c3aed"></button>
+      <button class="palette-swatch" data-color-theme="arctic" title="Arctic Glacial" aria-label="Arctic Glacial theme" style="--c:#0d9488"></button>
+    </div>
+    <button id="themeToggle" class="icon-button" type="button" aria-label="Switch theme">☾</button>
+    <button class="avatar-button" type="button" aria-label="StudySync profile">S</button>
+    <button id="logoutBtn" class="logout-button" type="button">Log out</button>
+  </div>
+  <div class="range" role="group" aria-label="Date range" hidden>
+    <button data-days="7" class="active">7 days</button>
+    <button data-days="14">14 days</button>
+    <button data-days="30">30 days</button>
+  </div>
+</header>
+
+<main id="overview">
+  <!-- ======= VIEW: OVERVIEW ======= -->
+  <section class="view-panel" id="view-overview">
+  <section class="dashboard-grid">
+    <section class="card activity-card" id="dailyActivity">
+      <div class="panel-heading"><div><span class="eyebrow">YOUR LEARNING ACTIVITY</span><h2>Study activity</h2></div><button class="period-pill" type="button" aria-label="Showing last seven days">This week⌄</button></div>
+      <div class="activity-summary"><strong id="activityHours">0h</strong><span><b>↗</b> Study time this week</span></div>
+      <div id="dayChart" class="daychart" role="img" aria-label="Minutes studied per day"></div>
+    </section>
+
+    <section class="card progress-card" id="analytics">
+      <div class="panel-heading"><div><span class="eyebrow">YOUR CONSISTENCY</span><h2>Learning progress</h2></div><span class="mini-badge">7 days</span></div>
+      <div class="progress-donut-wrap"><div class="progress-donut" id="progressDonut"><div><strong id="progressPercent">0%</strong><span>of weekly goal</span></div></div></div>
+      <div class="goal-inline"><div><strong id="goalProgress">0 min</strong><span id="goalTargetLabel">of 600 min</span></div><button id="editGoalBtn" type="button" class="text-button">Edit goal</button></div>
+      <div class="goal-track" role="progressbar" aria-label="Weekly study goal progress" aria-valuemin="0" aria-valuemax="600" aria-valuenow="0"><span id="goalFill"></span></div>
+      <form id="goalForm" class="goal-form" hidden><label for="goalMinutes">Weekly target (minutes)</label><div class="goal-input-row"><input id="goalMinutes" type="number" min="30" max="10080" step="30" value="600"><button class="btn primary" type="submit">Save target</button></div></form>
+      <div class="goal-footer"><span id="goalEncouragement">A little progress today goes a long way.</span></div>
+    </section>
+
+    <aside class="right-rail">
+      <section class="card profile-card">
+        <div class="profile-banner"><span>✦</span></div>
+        <div class="profile-avatar">S</div>
+        <h2 id="profileEmail">StudySync Learner</h2><p class="profile-subtitle">Building great study habits</p>
+        <span class="level-pill">✧ Consistency level</span>
+        <div class="calendar-head"><button id="prevMonth" type="button" aria-label="Previous month">‹</button><strong id="calendarMonth"></strong><button id="nextMonth" type="button" aria-label="Next month">›</button></div>
+        <div class="calendar-grid" id="calendarGrid" aria-label="Calendar"></div>
+      </section>
+
+      <section class="card plan-card" id="todayPlan">
+        <div class="panel-heading"><h2>Today's plan</h2><span class="plan-count" id="planCount">0/0</span></div>
+        <div id="taskList" class="task-list"></div>
+        <form id="taskForm" class="task-form"><input id="taskInput" maxlength="70" placeholder="Add a task..." aria-label="New study task" required><button type="submit" aria-label="Add task">＋</button></form>
+      </section>
+    </aside>
+
+    <section class="card goal-card" id="studyGoal">
+      <span class="eyebrow">QUICK STATS</span>
+      <div class="stats">
+        <div class="tile"><span class="stat-icon purple">▤</span><span class="label">Study time</span><strong id="statTotal">–</strong></div>
+        <div class="tile"><span class="stat-icon green">✓</span><span class="label">Sessions logged</span><strong id="statSessions">–</strong></div>
+        <div class="tile"><span class="stat-icon orange">◷</span><span class="label">Daily average</span><strong id="statAvg">–</strong></div>
+        <div class="tile" id="achievements"><span class="stat-icon blue">♨</span><span class="label">Study streak</span><strong id="statTop">0 days</strong></div>
+      </div>
+    </section>
+
+    <!-- Heatmap Contribution Card (Full Year / Overview) -->
+    <section class="card heatmap-card" id="heatmapCard">
+      <div class="panel-heading">
+        <div>
+          <span class="eyebrow">CONSISTENCY &amp; COMMITMENT</span>
+          <h2>Annual Study Heatmap</h2>
+        </div>
+        <div class="heatmap-meta">
+          <strong id="heatmapTotalHours">0h</strong><span class="heatmap-sub">total studied</span>
+          <span class="dot-sep">·</span>
+          <strong id="heatmapActiveDays">0</strong><span class="heatmap-sub">active days</span>
+          <span class="dot-sep">·</span>
+          <strong id="heatmapStreak">0</strong><span class="heatmap-sub">day streak</span>
+        </div>
+      </div>
+      <div class="heatmap-scroll">
+        <div class="heatmap-wrap">
+          <div class="heatmap-months" id="heatmapMonths"></div>
+          <div class="heatmap-body">
+            <div class="heatmap-days">
+              <span></span>
+              <span>Mon</span>
+              <span></span>
+              <span>Wed</span>
+              <span></span>
+              <span>Fri</span>
+              <span></span>
+            </div>
+            <div id="heatmapGrid" class="heatmap-grid" role="img" aria-label="Study activity heatmap over the past 52 weeks"></div>
+          </div>
+        </div>
+      </div>
+      <div class="heatmap-footer">
+        <span class="heatmap-quote">Every day of practice adds up to mastery.</span>
+        <div class="heatmap-legend">
+          <span>Less</span>
+          <span class="cell-sample lvl-0" title="0 min"></span>
+          <span class="cell-sample lvl-1" title="1-29 min"></span>
+          <span class="cell-sample lvl-2" title="30-59 min"></span>
+          <span class="cell-sample lvl-3" title="60-119 min"></span>
+          <span class="cell-sample lvl-4" title="120+ min"></span>
+          <span>More</span>
+        </div>
+      </div>
+      <div id="heatmapTooltip" class="heatmap-tooltip" hidden></div>
+    </section>
+  </section>
+  </section><!-- /view-overview -->
+
+  <!-- ======= VIEW: MY LEARNING ======= -->
+  <section class="view-panel" id="view-mylearning" hidden>
+    <section class="card learning-card" id="subjectBars">
+      <div class="panel-heading"><div><span class="eyebrow">PICK UP WHERE YOU LEFT OFF</span><h2>Continue learning</h2></div><a class="view-link" href="#" data-view="history">View sessions →</a></div>
+      <div id="emptyBars" class="empty" hidden>No subjects yet. Log a session to get started!</div>
+      <div id="learningCards" class="learning-cards"></div>
+      <div class="subject-details" id="subjectDetails"></div>
+    </section>
+  </section><!-- /view-mylearning -->
+
+  <!-- ======= VIEW: SCHEDULE ======= -->
+  <section class="view-panel" id="view-schedule" hidden>
+    <section class="card plan-card-full" id="scheduleFull">
+      <div class="panel-heading"><h2>Today's plan</h2><span class="plan-count" id="planCountFull">0/0</span></div>
+      <div id="taskListFull" class="task-list"></div>
+      <form id="taskFormFull" class="task-form"><input id="taskInputFull" maxlength="70" placeholder="Add a task..." aria-label="New study task" required><button type="submit" aria-label="Add task">＋</button></form>
+    </section>
+  </section><!-- /view-schedule -->
+
+  <!-- ======= VIEW: TRACK TIME (Timer only here!) ======= -->
+  <section class="view-panel" id="view-tracktime" hidden>
+    <section class="card log-card" id="logCard">
+      <h2>Track your study time</h2>
+
+      <div class="timer" aria-live="off">
+        <div id="clock" class="clock">00:00:00</div>
+        <div class="timer-actions">
+          <button id="startBtn" class="btn primary">▶ Start</button>
+          <button id="stopBtn" class="btn danger" hidden>■ Stop &amp; save</button>
+          <button id="discardBtn" class="btn ghost" hidden>Discard</button>
+        </div>
+      </div>
+
+      <form id="form" autocomplete="off">
+        <label>Subject
+          <input id="subject" name="subject" list="subjectList" placeholder="e.g. Data Structures" required maxlength="60">
+          <datalist id="subjectList"></datalist>
+        </label>
+        <div class="row">
+          <label>Category
+            <select id="category" name="category"></select>
+          </label>
+          <label>Minutes <span class="hint">(manual entry)</span>
+            <input id="minutes" name="minutes" type="number" min="1" max="1440" step="1" placeholder="45">
+          </label>
+        </div>
+        <label>Notes <span class="hint">(optional)</span>
+          <input id="notes" name="notes" placeholder="What did you cover?" maxlength="200">
+        </label>
+        <button type="submit" class="btn primary wide" id="saveBtn">Add session</button>
+        <p id="msg" class="msg" role="status"></p>
+      </form>
+    </section>
+  </section><!-- /view-tracktime -->
+
+  <!-- ======= VIEW: SESSION HISTORY ======= -->
+  <section class="view-panel" id="view-history" hidden>
+    <section class="card history-card" id="history">
+      <div class="section-heading history-heading"><div><h2>Session history</h2><p class="subheading">Your latest study sessions</p></div><label class="search-box"><span>⌕</span><input id="sessionSearch" type="search" placeholder="Search subject or notes" aria-label="Search sessions"></label></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>When</th><th>Subject</th><th>Category</th><th class="num">Duration</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div id="emptyRows" class="empty" hidden>Nothing logged yet.</div>
+    </section>
+  </section><!-- /view-history -->
+
+  <!-- ======= VIEW: ACHIEVEMENTS ======= -->
+  <section class="view-panel" id="view-achievements" hidden>
+    <section class="card">
+      <span class="eyebrow">YOUR PROGRESS</span>
+      <h2 style="margin:10px 0 20px">Achievements &amp; Stats</h2>
+      <div class="stats">
+        <div class="tile"><span class="stat-icon purple">▤</span><span class="label">Study time</span><strong id="achTotal">–</strong></div>
+        <div class="tile"><span class="stat-icon green">✓</span><span class="label">Sessions logged</span><strong id="achSessions">–</strong></div>
+        <div class="tile"><span class="stat-icon orange">◷</span><span class="label">Daily average</span><strong id="achAvg">–</strong></div>
+        <div class="tile"><span class="stat-icon blue">♨</span><span class="label">Study streak</span><strong id="achStreak">0 days</strong></div>
+      </div>
+    </section>
+  </section><!-- /view-achievements -->
+
+  <!-- ======= VIEW: STUDY GOAL ======= -->
+  <section class="view-panel" id="view-studygoal" hidden>
+    <section class="card progress-card-full">
+      <div class="panel-heading"><div><span class="eyebrow">YOUR WEEKLY TARGET</span><h2>Study goal</h2></div></div>
+      <div class="progress-donut-wrap"><div class="progress-donut" id="progressDonutGoal"><div><strong id="progressPercentGoal">0%</strong><span>of weekly goal</span></div></div></div>
+      <div class="goal-inline"><div><strong id="goalProgressGoal">0 min</strong><span id="goalTargetLabelGoal">of 600 min</span></div><button id="editGoalBtnGoal" type="button" class="text-button">Edit goal</button></div>
+      <div class="goal-track" role="progressbar" aria-label="Weekly study goal" aria-valuemin="0" aria-valuemax="600" aria-valuenow="0"><span id="goalFillGoal"></span></div>
+      <div class="goal-footer"><span id="goalEncouragementGoal">A little progress today goes a long way.</span></div>
+    </section>
+  </section><!-- /view-studygoal -->
+
+</main>
+
+<footer>StudySync · Review 1 build</footer>
+</div></div>
+<script src="three.min.js"></script>
+<script src="sprout.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudySync – Where is my time going?</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4f46e5">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">⏱</span>
+    <div>
+      <h1>StudySync</h1>
+      <p class="tagline">Where is my time going?</p>
+    </div>
+  </div>
+
+  <div class="top-controls">
+    <div class="live-pill" id="livePill" title="Connected to StudySync Live Room">
+      <span class="pulse-dot"></span>
+      <span id="liveCount">Connecting...</span>
+    </div>
+
+    <div class="action-buttons">
+      <button id="themeToggleBtn" class="btn ghost small theme-toggle" title="Switch between Dark and Light mode" aria-label="Toggle theme">🌙</button>
+      <button id="exportCsvBtn" class="btn ghost small" title="Export all sessions to CSV">📥 CSV</button>
+      <button id="printBtn" class="btn ghost small" title="Print summary report">🖨️ Report</button>
+    </div>
+
+    <div class="range" role="group" aria-label="Date range">
+      <button data-days="7" class="active">7 days</button>
+      <button data-days="14">14 days</button>
+      <button data-days="30">30 days</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Stat tiles -->
+  <section class="stats" aria-label="Summary">
+    <div class="tile"><span class="label">Total time</span><strong id="statTotal">–</strong></div>
+    <div class="tile"><span class="label">Sessions</span><strong id="statSessions">–</strong></div>
+    <div class="tile"><span class="label">Daily average</span><strong id="statAvg">–</strong></div>
+    <div class="tile"><span class="label">Top subject</span><strong id="statTop">–</strong></div>
+    <div class="tile"><span class="label">Current Streak</span><strong id="statStreak">0 days</strong></div>
+    <div class="tile"><span class="label">Best Streak</span><strong id="statBestStreak">0 days</strong></div>
+  </section>
+
+  <div class="grid">
+    <!-- Log a session & Timer / Pomodoro -->
+    <section class="card" id="logCard">
+      <div class="card-header-flex">
+        <h2>Study Timer</h2>
+        <div class="timer-mode-toggle" role="tablist">
+          <button id="modeStopwatch" class="mode-tab active" role="tab">Stopwatch</button>
+          <button id="modePomodoro" class="mode-tab" role="tab">Pomodoro</button>
+        </div>
+      </div>
+
+      <!-- Stopwatch View -->
+      <div id="stopwatchView">
+        <div class="timer" aria-live="off">
+          <div id="clock" class="clock">00:00:00</div>
+          <div class="timer-actions">
+            <button id="startBtn" class="btn primary">▶ Start</button>
+            <button id="stopBtn" class="btn danger" hidden>■ Stop &amp; save</button>
+            <button id="discardBtn" class="btn ghost" hidden>Discard</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pomodoro View -->
+      <div id="pomodoroView" hidden>
+        <div class="pomo-controls">
+          <button class="pomo-btn active" data-pomo="25" data-label="Focus">Focus (25m)</button>
+          <button class="pomo-btn" data-pomo="5" data-label="Short Break">Break (5m)</button>
+          <button class="pomo-btn" data-pomo="15" data-label="Long Break">Long Break (15m)</button>
+        </div>
+        <div class="timer pomo-timer" aria-live="off">
+          <div class="pomo-status" id="pomoPhase">Focus Session</div>
+          <div id="pomoClock" class="clock">25:00</div>
+          <div class="pomo-rounds" id="pomoRound">Round 1 of 4 🍅</div>
+          <div class="timer-actions">
+            <button id="pomoStartBtn" class="btn primary">▶ Start Pomodoro</button>
+            <button id="pomoPauseBtn" class="btn ghost" hidden>⏸ Pause</button>
+            <button id="pomoResetBtn" class="btn ghost" hidden>Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ambient Focus Audio Generator -->
+      <div class="sound-bar">
+        <div class="sound-label">
+          <span>🎧 Focus Ambient:</span>
+          <select id="ambientSelect" class="sound-select">
+            <option value="off">Off</option>
+            <option value="rain">🌧️ Gentle Rain</option>
+            <option value="cafe">☕ Warm Cafe Pink</option>
+            <option value="binaural">⚡ 40Hz Gamma Focus</option>
+          </select>
+        </div>
+        <input type="range" id="soundVolume" min="0" max="1" step="0.05" value="0.3" title="Volume" class="volume-slider">
+      </div>
+
+      <form id="form" autocomplete="off">
+        <label>Subject
+          <div id="subjectChips" class="chips"></div>
+          <input id="subject" name="subject" placeholder="e.g. Data Structures" required maxlength="40">
+        </label>
+        <div class="row">
+          <label>Category
+            <select id="category" name="category"></select>
+          </label>
+          <label>Minutes <span class="hint">(manual entry)</span>
+            <input id="minutes" name="minutes" type="number" min="1" max="1440" step="1" placeholder="45">
+          </label>
+        </div>
+        <label>Notes <span class="hint">(optional)</span>
+          <input id="notes" name="notes" placeholder="What did you cover?" maxlength="200">
+        </label>
+        <button type="submit" class="btn primary wide" id="saveBtn">Add session</button>
+        <p id="msg" class="msg" role="status"></p>
+      </form>
+    </section>
+
+    <!-- Where did time go -->
+    <section class="card">
+      <h2>Where your time went</h2>
+      <div id="subjectBars" class="bars"></div>
+      <div id="emptyBars" class="empty" hidden>No sessions in this range yet. Log your first one!</div>
+
+      <h3>By category</h3>
+      <div class="donut-wrap">
+        <div id="donut" class="donut" role="img" aria-label="Time by category"></div>
+        <ul id="legend" class="legend"></ul>
+      </div>
+    </section>
+
+    <!-- Weekly Goals Progress -->
+    <section class="card">
+      <div class="card-header-flex">
+        <h2>Weekly Subject Goals</h2>
+        <button id="openGoalModalBtn" class="btn ghost small">+ Set Goal</button>
+      </div>
+      <div id="goalsList" class="goals-list"></div>
+      <div id="emptyGoals" class="empty">No goals set yet. Set weekly targets to track progress!</div>
+    </section>
+
+    <!-- Collaborative Live Study Room ("Sync") -->
+    <section class="card">
+      <div class="card-header-flex">
+        <h2>Live Study Room</h2>
+        <span class="badge live-badge">Real-time</span>
+      </div>
+      <div class="room-settings">
+        <input id="peerName" placeholder="Your name" value="Student" maxlength="20" class="room-input">
+        <select id="roomSelect" class="room-input">
+          <option value="Main Study Room">Main Study Room</option>
+          <option value="Library - Silent Zone">Library - Silent Zone</option>
+          <option value="Project &amp; Code Lab">Project &amp; Code Lab</option>
+        </select>
+      </div>
+      <div class="peers-list" id="peersList">
+        <div class="empty">Connecting to StudySync network...</div>
+      </div>
+    </section>
+
+    <!-- Activity Heatmap -->
+    <section class="card wide-card">
+      <div class="card-header-flex">
+        <h2>Study Activity &amp; Consistency (Last 60 Days)</h2>
+        <div class="heatmap-legend">
+          <span>Less</span>
+          <i class="hm-box hm-0"></i>
+          <i class="hm-box hm-1"></i>
+          <i class="hm-box hm-2"></i>
+          <i class="hm-box hm-3"></i>
+          <i class="hm-box hm-4"></i>
+          <span>More</span>
+        </div>
+      </div>
+      <div id="heatmapGrid" class="heatmap-grid" role="img" aria-label="Study activity heatmap"></div>
+    </section>
+
+    <!-- Per-day chart -->
+    <section class="card wide-card">
+      <h2>Minutes per day</h2>
+      <div id="dayChart" class="daychart" role="img" aria-label="Minutes studied per day"></div>
+    </section>
+
+    <!-- Recent sessions with Live Search & Filter -->
+    <section class="card wide-card">
+      <div class="card-header-flex">
+        <h2>Recent sessions</h2>
+        <div class="table-filters">
+          <input id="searchSessions" placeholder="🔍 Search subject or notes..." class="search-input">
+          <select id="filterCategory" class="filter-select">
+            <option value="">All Categories</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>When</th><th>Subject</th><th>Category</th><th class="num">Duration</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div id="emptyRows" class="empty" hidden>Nothing logged yet.</div>
+    </section>
+  </div>
+</main>
+
+<!-- Edit session dialog -->
+<dialog id="editDialog" class="modal">
+  <form id="editForm" method="dialog" autocomplete="off">
+    <h2>Edit session</h2>
+    <input type="hidden" id="editId">
+    <label>Subject
+      <input id="editSubject" name="subject" placeholder="e.g. Data Structures" required maxlength="40">
+    </label>
+    <div class="row">
+      <label>Category
+        <select id="editCategory" name="category"></select>
+      </label>
+      <label>Minutes
+        <input id="editMinutes" name="minutes" type="number" min="1" max="1440" step="any" required>
+      </label>
+    </div>
+    <label>Notes <span class="hint">(optional)</span>
+      <input id="editNotes" name="notes" placeholder="What did you cover?" maxlength="200">
+    </label>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="cancelEditBtn">Cancel</button>
+      <button type="submit" class="btn primary" id="saveEditBtn">Save changes</button>
+    </div>
+    <p id="editMsg" class="msg" role="status"></p>
+  </form>
+</dialog>
+
+<!-- Set Goal dialog -->
+<dialog id="goalDialog" class="modal">
+  <form id="goalForm" method="dialog" autocomplete="off">
+    <h2>Set Weekly Subject Goal</h2>
+    <label>Subject
+      <input id="goalSubject" name="subject" placeholder="e.g. DBMS" required maxlength="40">
+    </label>
+    <label>Target Hours per Week
+      <input id="goalHours" name="target_hours" type="number" min="0.5" max="100" step="0.5" placeholder="e.g. 5" required>
+    </label>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="cancelGoalBtn">Cancel</button>
+      <button type="submit" class="btn primary" id="saveGoalBtn">Save Goal</button>
+    </div>
+    <p id="goalMsg" class="msg" role="status"></p>
+  </form>
+</dialog>
+
+<footer>StudySync · Final Multi-Feature Build</footer>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "StudySync",
+  "short_name": "StudySync",
+  "description": "Log study sessions, track goals, and analyze where your time goes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1320",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

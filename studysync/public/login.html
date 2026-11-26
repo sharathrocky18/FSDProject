@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudySync – Log In</title>
+<link rel="stylesheet" href="style.css">
+<script>
+  // Apply theme before render to avoid flash of wrong background
+  (function() {
+    const saved = localStorage.getItem('studysync.theme');
+    if (saved) {
+      document.documentElement.setAttribute('data-theme', saved);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'white');
+    }
+  })();
+</script>
+</head>
+<body class="auth-body">
+<header class="auth-top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">⏱</span>
+    <div>
+      <h1>StudySync</h1>
+      <p class="tagline">Where is my time going?</p>
+    </div>
+  </div>
+
+  <div class="top-actions">
+    <!-- Theme Switch: White / Dark -->
+    <div class="theme-switch-wrap" title="Switch between White and Dark theme">
+      <span class="switch-icon">☀️</span>
+      <label class="theme-switch" for="themeToggle">
+        <input type="checkbox" id="themeToggle" aria-label="Toggle dark and light theme">
+        <span class="slider"></span>
+      </label>
+      <span class="switch-icon">🌙</span>
+    </div>
+
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+  </div>
+</header>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab active" id="tabLogin" role="tab" aria-selected="true">Sign In</button>
+      <button class="auth-tab" id="tabRegister" role="tab" aria-selected="false">Create Account</button>
+    </div>
+
+    <!-- Sign In Form -->
+    <form id="loginForm" autocomplete="on">
+      <h2>Welcome back</h2>
+      <p class="subtitle">Log in to track your study progress and analytics.</p>
+
+      <label for="loginUsername">Username
+        <input id="loginUsername" name="username" type="text" placeholder="e.g. demo" required autocomplete="username">
+      </label>
+
+      <label for="loginPassword">Password
+        <input id="loginPassword" name="password" type="password" placeholder="••••••••" required autocomplete="current-password">
+      </label>
+
+      <button type="submit" class="btn primary wide" id="loginSubmitBtn">Sign In</button>
+
+      <div class="auth-divider">or try instant demo</div>
+
+      <button type="button" class="demo-btn" id="demoLoginBtn">
+        <span>⚡</span> Continue as Demo Student
+      </button>
+
+      <p id="authMsg" class="msg" role="status"></p>
+    </form>
+
+    <!-- Create Account Form -->
+    <form id="registerForm" autocomplete="on" hidden>
+      <h2>Create account</h2>
+      <p class="subtitle">Join StudySync to build lasting, productive study habits.</p>
+
+      <label for="regName">Full Name
+        <input id="regName" name="name" type="text" placeholder="e.g. Alex Johnson" required autocomplete="name">
+      </label>
+
+      <label for="regUsername">Username
+        <input id="regUsername" name="username" type="text" placeholder="Choose a username" required minlength="3" autocomplete="username">
+      </label>
+
+      <label for="regPassword">Password <span class="hint">(min 4 characters)</span>
+        <input id="regPassword" name="password" type="password" placeholder="••••••••" required minlength="4" autocomplete="new-password">
+      </label>
+
+      <button type="submit" class="btn primary wide" id="registerSubmitBtn">Create Account</button>
+
+      <p id="regMsg" class="msg" role="status"></p>
+    </form>
+  </div>
+</div>
+
+<footer>StudySync · Account &amp; Analytics</footer>
+
+<script>
+  const API_BASE = (window.location.protocol === 'file:' || (window.location.port !== '3000' && window.location.port !== ''))
+    ? 'http://localhost:3000'
+    : '';
+
+  // Theme switch logic
+  const themeToggle = document.getElementById('themeToggle');
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'white';
+  themeToggle.checked = (currentTheme === 'dark');
+
+  themeToggle.addEventListener('change', () => {
+    const newTheme = themeToggle.checked ? 'dark' : 'white';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('studysync.theme', newTheme);
+  });
+
+  // Tab switching
+  const tabLogin = document.getElementById('tabLogin');
+  const tabRegister = document.getElementById('tabRegister');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const authMsg = document.getElementById('authMsg');
+  const regMsg = document.getElementById('regMsg');
+
+  tabLogin.onclick = () => {
+    tabLogin.classList.add('active');
+    tabLogin.setAttribute('aria-selected', 'true');
+    tabRegister.classList.remove('active');
+    tabRegister.setAttribute('aria-selected', 'false');
+    loginForm.hidden = false;
+    registerForm.hidden = true;
+    authMsg.textContent = '';
+  };
+
+  tabRegister.onclick = () => {
+    tabRegister.classList.add('active');
+    tabRegister.setAttribute('aria-selected', 'true');
+    tabLogin.classList.remove('active');
+    tabLogin.setAttribute('aria-selected', 'false');
+    loginForm.hidden = true;
+    registerForm.hidden = false;
+    regMsg.textContent = '';
+  };
+
+  function setStatus(el, text, isError) {
+    el.textContent = text;
+    el.className = 'msg ' + (isError ? 'err' : 'ok');
+  }
+
+  // Handle Login submission
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginSubmitBtn');
+
+    btn.disabled = true;
+    setStatus(authMsg, 'Signing in...', false);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+
+      localStorage.setItem('studysync.user', JSON.stringify(data.user));
+      localStorage.setItem('studysync.token', data.token);
+
+      setStatus(authMsg, `Welcome back, ${data.user.name}! Redirecting...`, false);
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 700);
+    } catch (err) {
+      setStatus(authMsg, err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Handle Demo Login
+  document.getElementById('demoLoginBtn').addEventListener('click', async () => {
+    document.getElementById('loginUsername').value = 'demo';
+    document.getElementById('loginPassword').value = 'studysync123';
+    loginForm.dispatchEvent(new Event('submit'));
+  });
+
+  // Handle Register submission
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('regName').value.trim();
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const btn = document.getElementById('registerSubmitBtn');
+
+    btn.disabled = true;
+    setStatus(regMsg, 'Creating account...', false);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name, username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+      localStorage.setItem('studysync.user', JSON.stringify(data.user));
+      localStorage.setItem('studysync.token', data.token);
+
+      setStatus(regMsg, `Account created for ${data.user.name}! Redirecting...`, false);
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 700);
+    } catch (err) {
+      setStatus(regMsg, err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
